@@ -15,11 +15,24 @@ const chessMachine = createMachine(
       init: {
         on: {
           PLAY: "started",
+          PLUS_TIME: {
+            actions: assign((context, event) => ({
+              whiteTime: (context.whiteTime += 60),
+              blackTime: (context.blackTime += 60),
+            })),
+          },
+          MINUS_TIME: {
+            actions: assign((context, event) => ({
+              whiteTime: (context.whiteTime -= 60),
+              blackTime: (context.blackTime -= 60),
+            })),
+          },
         },
       },
       started: {
         on: {
           TOGGLE_PAUSE: "pause",
+          RESET: "init",
         },
         initial: "whiteTurn",
         states: {
@@ -82,6 +95,10 @@ function App() {
   const [state, send] = useMachine(chessMachine)
 
   const onClickPlay = (e) => {
+    // play, pause 버튼 클릭시
+    // 게임이 시작하지 않았으면 (state가 init인 상태) 게임시작 (white 부터)
+    // 게임 진행중이라면 일시정지
+    // history기능을 사용해서 이전 상태 기억함
     e.preventDefault()
     if (state.matches("init")) {
       send("PLAY")
@@ -90,10 +107,33 @@ function App() {
     }
   }
   useEffect(() => {
+    // 디버깅용
     console.log(state.value)
     console.log(state.matches("started"))
     console.log(state.matches("started.whiteTurn"))
   }, [state])
+
+  const onClickPlus = (e) => {
+    e.preventDefault()
+    if (state.matches("init")) {
+      send("PLUS_TIME")
+    }
+  }
+
+  const onClickMinus = (e) => {
+    e.preventDefault()
+    if (state.matches("init")) {
+      if (state.context.whiteTime <= 60) return
+      send("MINUS_TIME")
+    }
+  }
+
+  const onClickReset = (e) => {
+    e.preventDefault()
+    if (state.matches("started")) {
+      send("RESET")
+    }
+  }
 
   const onClickWhite = (e) => {
     e.preventDefault()
@@ -120,7 +160,7 @@ function App() {
           <p></p>
         </div>
         <div id="setting">
-          <div className="reset whiteColor">
+          <div onClick={onClickReset} className="reset whiteColor">
             <i className="fas fa-redo center"></i>
           </div>
           <div onClick={onClickPlay} className="pause grayColor">
@@ -131,10 +171,10 @@ function App() {
             )}
           </div>
           <div className="time whiteColor">
-            <div className="plus">
+            <div onClick={onClickPlus} className="plus">
               <i className="fas fa-plus center"></i>
             </div>
-            <div className="minus">
+            <div onClick={onClickMinus} className="minus">
               <i className="fas fa-minus center"></i>
             </div>
           </div>
