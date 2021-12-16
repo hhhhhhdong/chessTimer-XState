@@ -1,0 +1,156 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+/* html {
+  width: 100vw;
+  height: 100vh;
+} */
+/* #root {
+  width: 100vw;
+  height: 100vh;
+} */
+.App {
+  background-color: black;
+  position: fixed;
+  overflow: hidden;
+  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-around;
+}
+
+#footer {
+  transform: rotate(180deg);
+  text-align: right;
+  margin-top: 15%;
+  margin-left: 0.7%;
+  writing-mode: vertical-rl;
+  font-size: 9px;
+  color: silver;
+  width: 2%;
+}
+
+a:link {
+  color: silver;
+  text-decoration: none;
+}
+a:visited {
+  color: silver;
+  text-decoration: none;
+}
+a:hover {
+  color: silver;
+  text-decoration: underline;
+}
+
+#main {
+  width: 98%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.timer {
+  width: 95%;
+  margin: 0 auto;
+  border: solid 1px silver;
+  border-radius: 5px;
+  height: 30%;
+  font-size: 4em;
+  position: relative;
+  color: silver;
+}
+
+.timer.white {
+  transform: rotate(180deg);
+  margin-top: 0.2em;
+}
+
+.timer.black {
+  margin-bottom: 0.2em;
+}
+
+.timer span {
+  width: 100%;
+  text-align: center;
+
+  /* position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); */
+}
+
+.timer p {
+  font-size: 0.22em;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 0.1em 0.5em;
+  color: silver;
+}
+
+#setting {
+  border: solid 1px white;
+  border-radius: 5px;
+  width: 95%;
+  height: 16%;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-around;
+}
+
+#setting > div {
+  transform: rotate(-90deg);
+  width: 100%;
+  max-width: 6em;
+  height: 100%;
+}
+
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.time {
+  /* + - */
+  display: flex;
+  justify-content: center;
+}
+
+.time div {
+  width: 2.2em;
+  position: relative;
+}
+
+.reset i {
+  font-size: 30px;
+}
+.pause i {
+  font-size: 40px;
+}
+
+.time i {
+  font-size: 20px;
+}
+
+.grayColor {
+  color: gray;
+}
+
+.blackColor {
+  color: black;
+}
+
+.whiteColor {
+  color: white;
+}
+
+.whiteBorder {
+  border-color: white;
+  color: white;
+}
