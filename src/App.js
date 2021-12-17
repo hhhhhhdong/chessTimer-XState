@@ -9,6 +9,8 @@ const chessMachine = createMachine(
     context: {
       whiteTime: 600,
       blackTime: 600,
+      whiteMove: 0,
+      blackMove: 0,
     },
     initial: "init",
     states: {
@@ -16,16 +18,10 @@ const chessMachine = createMachine(
         on: {
           PLAY: "started",
           PLUS_TIME: {
-            actions: assign((context, event) => ({
-              whiteTime: (context.whiteTime += 60),
-              blackTime: (context.blackTime += 60),
-            })),
+            actions: "plusTime",
           },
           MINUS_TIME: {
-            actions: assign((context, event) => ({
-              whiteTime: (context.whiteTime -= 60),
-              blackTime: (context.blackTime -= 60),
-            })),
+            actions: "minusTime",
           },
         },
       },
@@ -34,10 +30,7 @@ const chessMachine = createMachine(
           TOGGLE_PAUSE: "pause",
           RESET: {
             target: "init",
-            actions: assign((ctx) => {
-              ctx.whiteTime = 600
-              ctx.blackTime = 600
-            }),
+            actions: "reset",
           },
         },
         initial: "whiteTurn",
@@ -45,47 +38,56 @@ const chessMachine = createMachine(
           whiteTurn: {
             initial: "whitePlay",
             states: {
-              whitePlay: {},
+              whitePlay: {
+                invoke: {
+                  src: (ctx) => (callback) => {
+                    const interval = setInterval(() => {
+                      callback("DECREASE_WHITE_TIME")
+                    }, 1000)
+                    return () => {
+                      clearInterval(interval)
+                    }
+                  },
+                },
+                on: {
+                  DECREASE_WHITE_TIME: {
+                    actions: "decreaseWhiteTime",
+                  },
+                  DONE_TIMER: "whiteEnd",
+                },
+              },
               whiteEnd: {},
             },
-            invoke: {
-              src: (ctx) => (callback) => {
-                const interval = setInterval(() => {
-                  callback("DECREASE_WHITE_TIME")
-                }, 1000)
-                return () => {
-                  clearInterval(interval)
-                }
-              },
-            },
             on: {
-              DECREASE_WHITE_TIME: {
-                actions: "decreaseWhiteTime",
-              },
-              WHITE_CLICK: "blackTurn",
+              WHITE_CLICK: { target: "blackTurn", actions: "whiteClick" },
             },
           },
           blackTurn: {
             initial: "blackPlay",
             states: {
-              blackPlay: {},
+              blackPlay: {
+                invoke: {
+                  src: (ctx) => (callback) => {
+                    const interval = setInterval(() => {
+                      callback("DECREASE_BLACK_TIME")
+                    }, 1000)
+                    return () => {
+                      clearInterval(interval)
+                    }
+                  },
+                },
+                on: {
+                  DECREASE_BLACK_TIME: {
+                    actions: "decreaseBlackTime",
+                  },
+                  DONE_TIMER: "blackEnd",
+                },
+              },
               blackEnd: {},
             },
-            invoke: {
-              src: (ctx) => (callback) => {
-                const interval = setInterval(() => {
-                  callback("DECREASE_BLACK_TIME")
-                }, 1000)
-                return () => {
-                  clearInterval(interval)
-                }
-              },
-            },
+
             on: {
-              DECREASE_BLACK_TIME: {
-                actions: "decreaseBlackTime",
-              },
-              BLACK_CLICK: "whiteTurn",
+              BLACK_CLICK: { target: "whiteTurn", actions: "blackClick" },
             },
           },
           hist: {
@@ -96,14 +98,54 @@ const chessMachine = createMachine(
       pause: {
         on: {
           TOGGLE_PAUSE: "started.hist",
+          RESET: {
+            target: "init",
+            actions: "reset",
+          },
         },
       },
     },
   },
   {
     actions: {
+      decreaseWhiteTimeInterval: (ctx) => (callback) => {
+        const interval = setInterval(() => {
+          callback("DECREASE_WHITE_TIME")
+        }, 1000)
+        return () => {
+          clearInterval(interval)
+        }
+      },
+      decreaseBlackTimeInterval: (ctx) => (callback) => {
+        const interval = setInterval(() => {
+          callback("DECREASE_BLACK_TIME")
+        }, 1000)
+        return () => {
+          clearInterval(interval)
+        }
+      },
       decreaseWhiteTime: (ctx) => (ctx.whiteTime -= 1),
       decreaseBlackTime: (ctx) => (ctx.blackTime -= 1),
+      whiteClick: assign((ctx) => ({
+        whiteMove: (ctx.whiteMove += 1),
+      })),
+      blackClick: assign((ctx) => ({
+        blackMove: (ctx.blackMove += 1),
+      })),
+      plusTime: assign((ctx, event) => ({
+        whiteTime: (ctx.whiteTime += 60),
+        blackTime: (ctx.blackTime += 60),
+      })),
+      minusTime: assign((ctx, event) => ({
+        whiteTime: (ctx.whiteTime -= 60),
+        blackTime: (ctx.blackTime -= 60),
+      })),
+      reset: assign((ctx) => {
+        ctx.whiteMove = 0
+        ctx.blackMove = 0
+        ctx.whiteTime = 600
+        ctx.blackTime = 600
+      }),
     },
     guards: {
       isStarted: (ctx) => ctx.gameState !== "init",
@@ -141,12 +183,12 @@ function App() {
       send("TOGGLE_PAUSE")
     }
   }
-  // useEffect(() => {
-  //   // 디버깅용
-  //   console.log(state.value)
-  //   console.log(state.matches("started"))
-  //   console.log(state.matches("started.whiteTurn"))
-  // }, [state])
+  useEffect(() => {
+    // 디버깅용
+    console.log(state.context.blackMove)
+    console.log(state.matches("started"))
+    console.log(state.matches("started.whiteTurn"))
+  }, [state])
 
   const onClickPlus = (e) => {
     e.preventDefault()
@@ -165,7 +207,7 @@ function App() {
 
   const onClickReset = (e) => {
     e.preventDefault()
-    if (state.matches("started")) {
+    if (state.matches("started") || state.matches("pause")) {
       send("RESET")
     }
   }
@@ -190,22 +232,38 @@ function App() {
         made by <a href="https://www.instagram.com/hhhhhhdong/">@hhhhhhdong</a>
       </div>
       <div id="main">
-        <div onClick={onClickWhite} data-team="white" className="timer white">
+        <div
+          onClick={onClickWhite}
+          data-team="white"
+          className={`timer white ${
+            state.matches("started.whiteTurn") && "whiteBorder"
+          }`}
+        >
           <span className="center">{showTime(state.context.whiteTime)}</span>
-          <p></p>
+          <p>move {state.context.whiteMove}</p>
+          <h6>WHITE</h6>
         </div>
         <div id="setting">
-          <div onClick={onClickReset} className="reset whiteColor">
+          <div
+            onClick={onClickReset}
+            className={`reset ${
+              state.matches("init") ? "grayColor" : "whiteColor"
+            }`}
+          >
             <i className="fas fa-redo center"></i>
           </div>
-          <div onClick={onClickPlay} className="pause grayColor">
+          <div onClick={onClickPlay} className="pause whiteColor">
             {state.matches("started") ? (
               <i className="fas fa-pause center"></i>
             ) : (
               <i className="fas fa-play center"></i>
             )}
           </div>
-          <div className="time whiteColor">
+          <div
+            className={`time ${
+              state.matches("init") ? "whiteColor" : "grayColor"
+            }`}
+          >
             <div onClick={onClickPlus} className="plus">
               <i className="fas fa-plus center"></i>
             </div>
@@ -214,9 +272,16 @@ function App() {
             </div>
           </div>
         </div>
-        <div onClick={onClickBlack} data-team="black" className="timer black">
+        <div
+          onClick={onClickBlack}
+          data-team="black"
+          className={`timer black ${
+            state.matches("started.blackTurn") && "whiteBorder"
+          }`}
+        >
           <span className="center">{showTime(state.context.blackTime)}</span>
-          <p></p>
+          <p>move {state.context.blackMove}</p>
+          <h6>BLACK</h6>
         </div>
       </div>
     </div>

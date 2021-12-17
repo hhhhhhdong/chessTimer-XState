@@ -64,6 +64,10 @@ a:hover {
   color: silver;
 }
 
+.timer h6 {
+  padding-left: 15px;
+}
+
 .timer.white {
   transform: rotate(180deg);
   margin-top: 0.2em;
