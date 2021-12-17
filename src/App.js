@@ -32,7 +32,13 @@ const chessMachine = createMachine(
       started: {
         on: {
           TOGGLE_PAUSE: "pause",
-          RESET: "init",
+          RESET: {
+            target: "init",
+            actions: assign((ctx) => {
+              ctx.whiteTime = 600
+              ctx.blackTime = 600
+            }),
+          },
         },
         initial: "whiteTurn",
         states: {
@@ -42,7 +48,20 @@ const chessMachine = createMachine(
               whitePlay: {},
               whiteEnd: {},
             },
+            invoke: {
+              src: (ctx) => (callback) => {
+                const interval = setInterval(() => {
+                  callback("DECREASE_WHITE_TIME")
+                }, 1000)
+                return () => {
+                  clearInterval(interval)
+                }
+              },
+            },
             on: {
+              DECREASE_WHITE_TIME: {
+                actions: "decreaseWhiteTime",
+              },
               WHITE_CLICK: "blackTurn",
             },
           },
@@ -52,7 +71,20 @@ const chessMachine = createMachine(
               blackPlay: {},
               blackEnd: {},
             },
+            invoke: {
+              src: (ctx) => (callback) => {
+                const interval = setInterval(() => {
+                  callback("DECREASE_BLACK_TIME")
+                }, 1000)
+                return () => {
+                  clearInterval(interval)
+                }
+              },
+            },
             on: {
+              DECREASE_BLACK_TIME: {
+                actions: "decreaseBlackTime",
+              },
               BLACK_CLICK: "whiteTurn",
             },
           },
@@ -69,7 +101,10 @@ const chessMachine = createMachine(
     },
   },
   {
-    actions: {},
+    actions: {
+      decreaseWhiteTime: (ctx) => (ctx.whiteTime -= 1),
+      decreaseBlackTime: (ctx) => (ctx.blackTime -= 1),
+    },
     guards: {
       isStarted: (ctx) => ctx.gameState !== "init",
       isPaused: (ctx) =>
@@ -106,12 +141,12 @@ function App() {
       send("TOGGLE_PAUSE")
     }
   }
-  useEffect(() => {
-    // 디버깅용
-    console.log(state.value)
-    console.log(state.matches("started"))
-    console.log(state.matches("started.whiteTurn"))
-  }, [state])
+  // useEffect(() => {
+  //   // 디버깅용
+  //   console.log(state.value)
+  //   console.log(state.matches("started"))
+  //   console.log(state.matches("started.whiteTurn"))
+  // }, [state])
 
   const onClickPlus = (e) => {
     e.preventDefault()
