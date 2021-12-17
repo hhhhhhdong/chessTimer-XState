@@ -2,6 +2,7 @@ import "./App.css"
 import { createMachine, interpret, assign } from "xstate"
 import { useMachine } from "@xstate/react"
 import { useEffect } from "react"
+import { send } from "xstate/lib/actionTypes"
 
 const chessMachine = createMachine(
   {
@@ -50,16 +51,23 @@ const chessMachine = createMachine(
                   },
                 },
                 on: {
-                  DECREASE_WHITE_TIME: {
-                    actions: "decreaseWhiteTime",
-                  },
-                  DONE_TIMER: "whiteEnd",
+                  DECREASE_WHITE_TIME: [
+                    {
+                      actions: "decreaseWhiteTime",
+                      cond: "isWhiteHaveTime",
+                    },
+                    {
+                      target: "#chessTimer.whiteEnd",
+                    },
+                  ],
                 },
               },
-              whiteEnd: {},
             },
             on: {
-              WHITE_CLICK: { target: "blackTurn", actions: "whiteClick" },
+              WHITE_CLICK: {
+                target: "blackTurn",
+                actions: "whiteClick",
+              },
             },
           },
           blackTurn: {
@@ -77,13 +85,17 @@ const chessMachine = createMachine(
                   },
                 },
                 on: {
-                  DECREASE_BLACK_TIME: {
-                    actions: "decreaseBlackTime",
-                  },
-                  DONE_TIMER: "blackEnd",
+                  DECREASE_BLACK_TIME: [
+                    {
+                      actions: "decreaseBlackTime",
+                      cond: "isBlackHaveTime",
+                    },
+                    {
+                      target: "#chessTimer.blackEnd",
+                    },
+                  ],
                 },
               },
-              blackEnd: {},
             },
 
             on: {
@@ -92,6 +104,22 @@ const chessMachine = createMachine(
           },
           hist: {
             type: "history",
+          },
+        },
+      },
+      whiteEnd: {
+        on: {
+          RESET: {
+            target: "init",
+            actions: "reset",
+          },
+        },
+      },
+      blackEnd: {
+        on: {
+          RESET: {
+            target: "init",
+            actions: "reset",
           },
         },
       },
@@ -108,38 +136,26 @@ const chessMachine = createMachine(
   },
   {
     actions: {
-      decreaseWhiteTimeInterval: (ctx) => (callback) => {
-        const interval = setInterval(() => {
-          callback("DECREASE_WHITE_TIME")
-        }, 1000)
-        return () => {
-          clearInterval(interval)
-        }
+      decreaseWhiteTime: (ctx) => {
+        ctx.whiteTime -= 1
       },
-      decreaseBlackTimeInterval: (ctx) => (callback) => {
-        const interval = setInterval(() => {
-          callback("DECREASE_BLACK_TIME")
-        }, 1000)
-        return () => {
-          clearInterval(interval)
-        }
+      decreaseBlackTime: (ctx) => {
+        ctx.blackTime -= 1
       },
-      decreaseWhiteTime: (ctx) => (ctx.whiteTime -= 1),
-      decreaseBlackTime: (ctx) => (ctx.blackTime -= 1),
-      whiteClick: assign((ctx) => ({
-        whiteMove: (ctx.whiteMove += 1),
-      })),
-      blackClick: assign((ctx) => ({
-        blackMove: (ctx.blackMove += 1),
-      })),
-      plusTime: assign((ctx, event) => ({
-        whiteTime: (ctx.whiteTime += 60),
-        blackTime: (ctx.blackTime += 60),
-      })),
-      minusTime: assign((ctx, event) => ({
-        whiteTime: (ctx.whiteTime -= 60),
-        blackTime: (ctx.blackTime -= 60),
-      })),
+      whiteClick: assign((ctx) => {
+        ctx.whiteMove += 1
+      }),
+      blackClick: assign((ctx) => {
+        ctx.blackMove += 1
+      }),
+      plusTime: assign((ctx, event) => {
+        ctx.whiteTime += 60
+        ctx.blackTime += 60
+      }),
+      minusTime: assign((ctx, event) => {
+        ctx.whiteTime -= 60
+        ctx.blackTime -= 60
+      }),
       reset: assign((ctx) => {
         ctx.whiteMove = 0
         ctx.blackMove = 0
@@ -148,6 +164,8 @@ const chessMachine = createMachine(
       }),
     },
     guards: {
+      isWhiteHaveTime: (ctx) => ctx.whiteTime > 0,
+      isBlackHaveTime: (ctx) => ctx.blackTime > 0,
       isStarted: (ctx) => ctx.gameState !== "init",
       isPaused: (ctx) =>
         ctx.gameState !== "whitePause" || ctx.gameState !== "blackPause",
@@ -207,7 +225,12 @@ function App() {
 
   const onClickReset = (e) => {
     e.preventDefault()
-    if (state.matches("started") || state.matches("pause")) {
+    if (
+      state.matches("started") ||
+      state.matches("pause") ||
+      state.matches("whiteEnd") ||
+      state.matches("blackEnd")
+    ) {
       send("RESET")
     }
   }
@@ -239,7 +262,11 @@ function App() {
             state.matches("started.whiteTurn") && "whiteBorder"
           }`}
         >
-          <span className="center">{showTime(state.context.whiteTime)}</span>
+          <span className="center">
+            {state.matches("whiteEnd")
+              ? "LOSE"
+              : showTime(state.context.whiteTime)}
+          </span>
           <p>move {state.context.whiteMove}</p>
           <h6>WHITE</h6>
         </div>
