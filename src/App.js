@@ -279,7 +279,14 @@ function App() {
           >
             <i className="fas fa-redo center"></i>
           </div>
-          <div onClick={onClickPlay} className="pause whiteColor">
+          <div
+            onClick={onClickPlay}
+            className={`pause ${
+              state.matches("whiteEnd") || state.matches("blackEnd")
+                ? "grayColor"
+                : "whiteColor"
+            }`}
+          >
             {state.matches("started") ? (
               <i className="fas fa-pause center"></i>
             ) : (
@@ -306,7 +313,11 @@ function App() {
             state.matches("started.blackTurn") && "whiteBorder"
           }`}
         >
-          <span className="center">{showTime(state.context.blackTime)}</span>
+          <span className="center">
+            {state.matches("blackEnd")
+              ? "LOSE"
+              : showTime(state.context.blackTime)}
+          </span>
           <p>move {state.context.blackMove}</p>
           <h6>BLACK</h6>
         </div>
