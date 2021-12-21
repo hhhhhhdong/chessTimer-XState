@@ -1,8 +1,7 @@
 import "./App.css"
-import { createMachine, interpret, assign } from "xstate"
+import { createMachine, assign } from "xstate"
 import { useMachine } from "@xstate/react"
 import { useEffect } from "react"
-import { send } from "xstate/lib/actionTypes"
 
 const chessMachine = createMachine(
   {
