@@ -13,7 +13,10 @@ function App() {
   return (
     <div className="App">
       <div id="footer">
-        made by <a href="https://www.instagram.com/hhhhhhdong/">@hhhhhhdong</a>
+        made by{' '}
+        <a href="https://github.com/hhhhhhdong/chessTimer-XState">
+          @hhhhhhdong
+        </a>
       </div>
       <div id="main">
         <White state={state} send={send} />
