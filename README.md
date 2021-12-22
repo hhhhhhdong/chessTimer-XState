@@ -119,11 +119,16 @@ XState에대해서 비판하는 사람들도 많다. 그들의 이야기를 정�
 
 
 
-
 참고자료
+
 https://xstate.js.org/docs/
+
 https://egghead.io/lessons/xstate-recall-previous-states-with-xstate-history-states-nodes
+
 https://en.wikipedia.org/wiki/UML_state_machine
+
 https://statecharts.dev/on-off-statechart.html
+
 https://css-tricks.com/using-react-and-xstate-to-build-a-sign-in-form/
+
 http://www.inf.ed.ac.uk/teaching/courses/seoc/2005_2006/resources/statecharts.pdf
