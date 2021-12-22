@@ -3,13 +3,13 @@
 ## 프로젝트 소개
 
 >배포링크 https://timer-for-chess-xstate.netlify.app/
+>
 >모바일을 기준으로 만들었으며 웹에서보면 크게 보일 수 있다.
-
-이번 프로젝트는 [예전에 자바스크립트로만 만들었던 체스타이머 프로젝트](https://github.com/hhhhhhdong/chessTimer)를 [XState](https://xstate.js.org/) 상태관리 라이브러리를 사용해 보고자 리팩토링하면서 만들었습니다.
 
 ![image-20211222223502722](img/image-20211222223502722.png)
 
-Chess Timer프로젝트는 예전에 친구들과 취미로 체스를 두다가 체스타이머가 없어서 각자 휴대폰타이머를 사용했었는데 불편함을 느끼고 웹으로 구현해서 사용할려고 만들었던 프로젝트이다.
+- Chess Timer프로젝트는 예전에 친구들과 취미로 체스를 두다가 체스타이머가 없어서 각자 휴대폰타이머를 사용했었는데 불편함을 느끼고 웹으로 구현해서 사용할려고 만든 프로젝트입니다.
+- [예전에 자바스크립트로만 만들었던 체스타이머 프로젝트](https://github.com/hhhhhhdong/chessTimer)를 [XState](https://xstate.js.org/) 상태관리 라이브러리 사용해서 리팩토링했습니다.
 
 ### 기능설명
 
